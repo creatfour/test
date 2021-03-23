@@ -1,0 +1,108 @@
+#include "stdio.h"
+#include "stack"
+#include "string.h"
+
+#include "iostream"
+
+#define MAXSIZE 1000
+
+using namespace std;
+
+typedef struct
+{
+    int i;
+    int j;
+    int di;
+}Box;
+
+bool mazePath(int maze[6][6],int xi,int yi,int xe,int ye)
+{
+    Box path[MAXSIZE];
+    Box e;
+    int i,j,di;
+    int i1,j1;
+    bool find;
+    stack<Box> s,temp1,temp2;
+    int counter=0;
+
+    e.i=xi;
+    e.j=yi;
+    e.di=-1;
+    s.push(e);
+    maze[xi][yi]=-1;//出发节点进栈，且置为不可走
+
+    while(!s.empty())
+    {
+        e=s.top();
+        i=e.i;
+        j=e.j;
+        di=e.di;//取栈顶节点为当前节点
+
+        if(i==xe&&j==ye)//如果栈顶节点是终点
+        {
+            counter++;
+            printf("\n第%d条长度为%d的迷宫路径如下:\n",counter,s.size());
+            //将栈s中的元素逆向输出
+            temp1=s;
+            while(!temp1.empty())//将temp1栈中的元素出栈，并进栈到temp2栈中
+            {
+                temp2.push(temp1.top());
+                temp1.pop();
+            }
+            while(!temp2.empty())
+            {
+                printf("(%d,%d)\t",temp2.top().i,temp2.top().j);
+                temp2.pop();
+            }
+            printf("\n");
+            //return true;
+            s.pop();	//栈顶为终点节点退栈
+            maze[xe][ye]=0;	//让退栈方块变为其他路径可走方块
+            continue;
+        }
+
+        find=false;
+        while(di<3&&!find)
+        {
+            di++;
+            switch(di)
+            {
+                case 0:i1=i-1; j1=j;    break;
+                case 1:i1=i;   j1=j+1;  break;
+                case 2:i1=i+1; j1=j;    break;
+                case 3:i1=i;   j1=j-1;  break;
+            }
+            if (maze[i1][j1]==0)
+                find=true;	//找到一个相邻可走方块，设置find为真
+        }
+        if (find) //找到了一个相邻可走方块(i1,j1)
+        {
+            s.pop();
+            e.i=i;e.j=j;e.di=di;
+            s.push(e);	//修改原栈顶元素的di值
+
+            e.i=i1; e.j=j1; e.di=-1;
+            s.push(e);		     	//相邻可走方块e进栈
+            maze[i1][j1]=-1;		//(i1,j1)迷宫值置为-1避免重复
+        }
+        else
+        {
+            s.pop();	//将栈顶方块退栈
+            maze[i][j]=0;	//让退栈方块变为其他路径可走方块
+        }
+    }
+    //if(s.empty())
+    return counter!=0;
+}
+
+int main()
+{
+    int maze[6][6]={{1,1,1,1,1,1},
+                    {1,0,0,0,1,1},
+                    {1,0,1,0,0,1},
+                    {1,0,0,0,1,1},
+                    {1,1,0,0,0,1},
+                    {1,1,1,1,1,1}};
+    if(!mazePath(maze,1,1,4,4))
+        printf("该迷宫问题无解\n");
+}
